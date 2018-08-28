@@ -1,6 +1,8 @@
 // Copy paste this Java Template and save it as "EmergencyRoom.java"
 import java.util.*;
 import java.io.*;
+import Patient;
+
 
 // write your matric number here:
 // write your name here:
