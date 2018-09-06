@@ -1,7 +1,6 @@
 // Copy paste this Java Template and save it as "EmergencyRoom.java"
 import java.util.*;
 import java.io.*;
-import Patient;
 
 
 // write your matric number here:
@@ -12,14 +11,101 @@ import Patient;
 class EmergencyRoom {
   // if needed, declare a private data structure here that
   // is accessible to all methods in this class
+  static int entryCounter = 0;
+
+  class Patient {
+    String patientName = "";
+    int patientPriority = 0;
+    int patientEntry = 0;
+
+
+    public Patient(String patientName, int patientPriority) {
+      this.patientName = patientName;
+      this.patientPriority = patientPriority;
+      entryCounter++;
+      this.patientEntry = entryCounter;
+
+    }
+
+    public Patient(String patientName, int patientPriority, int patientEntry) {
+      this.patientName = patientName;
+      this.patientPriority = patientPriority;
+      this.patientEntry = patientEntry;
+
+    }
+
+    void updatePatientName(String newName) {
+      this.patientName = newName;
+    }
+
+    void updatePatientPriority(int newPriority) {
+      this.patientPriority = newPriority;
+    }
+
+    String getName() {
+      return patientName;
+    }
+
+    int getPriority() {
+      return patientPriority;
+    }
+
+    int getEntry() {
+      return patientEntry;
+    }
+
+    @Override
+    public boolean equals(Object pat) {
+      if (pat == null){
+        return false;
+      }
+      final Patient other = (Patient) pat;
+      if (this.getName() != other.getName()) {
+        return false;
+      }
+      if (this.getPriority() != other.getPriority()) {
+        return false;
+      }
+      if (this.getEntry() != other.getEntry()) {
+        return false;
+      }
+      return true;
+    }
+
+    @Override
+    public int hashCode() {
+      return getName().hashCode() + 31 * getPriority() + 37 * getEntry();
+    }
+
+  }
+
+  class PatientComparator implements Comparator<Patient> {
+    @Override
+    public int compare(Patient x, Patient y) {
+      // PriorityQueue is ordinal, negating the result to turn it cardinal
+      if (x.getPriority() != y.getPriority())
+        return y.getPriority() - x.getPriority();
+      return x.getEntry() - y.getEntry();
+    }
+  }
+
+  PatientComparator patientComparator;
+  PriorityQueue patientQueue;
+  Hashtable patientHashtable;
 
   public EmergencyRoom() {
     // Write necessary code during construction
     //
     // write your answer here
 
-
-
+    // Declare comparator for Patient class
+    patientComparator = new PatientComparator();
+    // Declare PriorityQueue (Binary Heap) for the Queue
+    patientQueue = new PriorityQueue<Patient>(patientComparator);
+    // Declare hashtable to put in patients
+    // Key: patientName
+    // Value: Patient object
+    patientHashtable = new Hashtable();
   }
 
   void ArriveAtHospital(String patientName, int emergencyLvl) {
@@ -27,9 +113,9 @@ class EmergencyRoom {
     // into your chosen data structure
     //
     // write your answer here
-
-
-
+    Patient newPatient = new Patient(patientName, emergencyLvl);
+    patientQueue.add(newPatient);
+    patientHashtable.put(patientName, newPatient);
   }
 
   void UpdateEmergencyLvl(String patientName, int incEmergencyLvl) {
@@ -39,8 +125,14 @@ class EmergencyRoom {
     //
     // write your answer here
 
-
-
+    Patient oldPatient = (Patient) patientHashtable.get(patientName);
+    if (patientQueue.contains(oldPatient)) {
+      patientQueue.remove(oldPatient);
+      Patient updPatient = new Patient(patientName, oldPatient.getPriority() + incEmergencyLvl, oldPatient.getEntry());
+      patientQueue.add(updPatient);
+      patientHashtable.remove(patientName);
+      patientHashtable.put(patientName, updPatient);
+    }
   }
 
   void Treat(String patientName) {
@@ -48,9 +140,17 @@ class EmergencyRoom {
     // remove him/her from your chosen data structure
     //
     // write your answer here
-
-
-
+    /*
+    // Treat patient with highest priority
+    Patient toTreatPat = (Patient) patientQueue.poll();
+    patientHashtable.remove(toTreatPat.getName());
+    */
+    // Treat named patient
+    Patient toTreatPat = (Patient) patientHashtable.get(patientName);
+    if (patientQueue.contains(toTreatPat)) {
+      patientQueue.remove(toTreatPat);
+      patientHashtable.remove(toTreatPat);
+    }
   }
 
   String Query() {
@@ -61,9 +161,10 @@ class EmergencyRoom {
     // be taken care of, return a String "The emergency suite is empty"
     //
     // write your answer here
-
-
-
+    Patient toTreatPat = (Patient) patientQueue.peek();
+    if (toTreatPat != null) {
+      ans = toTreatPat.getName();
+    }
     return ans;
   }
 
